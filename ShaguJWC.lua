@@ -16,7 +16,7 @@ ShaguJWC_Random = function()
 end
 
 do -- animation
-  fireworks = CreateFrame("Button", nil, WorldFrame)
+  fireworks = CreateFrame("Frame", nil, WorldFrame)
   fireworks:SetFrameStrata("BACKGROUND")
   fireworks:SetAllPoints()
   fireworks:Hide()
@@ -55,6 +55,8 @@ do -- animation
   -- create random amount of fireworks at random positions
   local width, height = GetScreenWidth(), GetScreenHeight()
   fireworks:SetScript("OnUpdate", function()
+    if not window:IsShown() then this:Hide() end
+
     -- fade in the night
     if this:GetAlpha() < 1 then
       this:SetAlpha(this:GetAlpha() + .02)
