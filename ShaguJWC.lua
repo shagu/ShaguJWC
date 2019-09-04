@@ -170,13 +170,13 @@ do -- window
 
   -- slots
   window.slots = { }
-  window.slots[3] = CreateSlot()
-  window.slots[3]:SetPoint("CENTER", window, "CENTER", 0, 0)
-  window.slots[3]:SetWidth(64)
-  window.slots[3]:SetHeight(64)
-  window.slots[3].border:SetWidth(128)
-  window.slots[3].border:SetHeight(128)
-  window.slots[3].border:SetVertexColor(.2,.2,.2,1)
+  window.slots[1] = CreateSlot()
+  window.slots[1]:SetPoint("CENTER", window, "CENTER", 0, 0)
+  window.slots[1]:SetWidth(64)
+  window.slots[1]:SetHeight(64)
+  window.slots[1].border:SetWidth(128)
+  window.slots[1].border:SetHeight(128)
+  window.slots[1].border:SetVertexColor(.2,.2,.2,1)
 
   window.slots[2] = CreateSlot()
   window.slots[2]:SetPoint("LEFT", window, "LEFT", 32, 0)
@@ -186,13 +186,13 @@ do -- window
   window.slots[2].border:SetHeight(64)
   window.slots[2].border:SetVertexColor(.2,.2,.2,1)
 
-  window.slots[1] = CreateSlot()
-  window.slots[1]:SetPoint("RIGHT", window, "RIGHT", -32, 0)
-  window.slots[1]:SetWidth(32)
-  window.slots[1]:SetHeight(32)
-  window.slots[1].border:SetWidth(64)
-  window.slots[1].border:SetHeight(64)
-  window.slots[1].border:SetVertexColor(.2,.2,.2,1)
+  window.slots[3] = CreateSlot()
+  window.slots[3]:SetPoint("RIGHT", window, "RIGHT", -32, 0)
+  window.slots[3]:SetWidth(32)
+  window.slots[3]:SetHeight(32)
+  window.slots[3].border:SetWidth(64)
+  window.slots[3].border:SetHeight(64)
+  window.slots[3].border:SetVertexColor(.2,.2,.2,1)
 
   -- animation
   window:SetScript("OnUpdate", function()
@@ -230,17 +230,28 @@ do -- loot handler
       if ( not b or not b[2]) then
         return false
       else
-        return a[2] < b[2]
+        return a[2] > b[2]
       end
     end)
 
     for i=1,3 do
-      window.slots[i].icon:SetTexture(slots[i] and slots[i][3] or 0, 0, 0)
-      window.slots[i].border:SetVertexColor(GetItemQualityColor(slots[i] and slots[i][2] or 0))
-      window.slots[i].count:SetText(slots[i] and slots[i][4] ~= 0 and slots[i][4] or "")
+      local index = i
+
+      -- skip the big icon when less than 3 results are available
+      if not slots[3] then
+        index = i + 1
+        window.slots[1].icon:SetTexture(0,0,0)
+        window.slots[1].border:SetVertexColor(GetItemQualityColor(0))
+        window.slots[1].count:SetText("")
+        if index > 3 then break end
+      end
+
+      window.slots[index].icon:SetTexture(slots[i] and slots[i][3] or 0, 0, 0)
+      window.slots[index].border:SetVertexColor(GetItemQualityColor(slots[i] and slots[i][2] or 0))
+      window.slots[index].count:SetText(slots[i] and slots[i][4] ~= 0 and slots[i][4] or "")
     end
 
-    if slots[3] and slots[3][2] and slots[3][2] > 2 then fireworks:Show() end
+    if slots[1] and slots[1][2] and slots[1][2] > 2 then fireworks:Show() end
   end
 
   local lootscan = CreateFrame("Frame")
