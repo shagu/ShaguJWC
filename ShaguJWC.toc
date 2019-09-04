@@ -1,0 +1,6 @@
+## Interface: 20400
+## Title: |cff33ffccShagu|cffffffffJWC
+## Author: Shagu, 2019
+## Notes: Some Eye-candy for your JWC gambling
+## Version: 1.0
+ShaguJWC.lua
