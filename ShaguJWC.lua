@@ -1,4 +1,5 @@
 -- init variables
+local restore = 0
 local fireworks, window
 local filter = string.gsub(LOOT_ITEM_SELF,"%%s", "(.+)")
 local filtermulti = string.gsub(LOOT_ITEM_SELF_MULTIPLE,"%%s", "(.+)")
@@ -56,12 +57,6 @@ do -- animation
   local width, height = GetScreenWidth(), GetScreenHeight()
   fireworks:SetScript("OnUpdate", function()
     if not window:IsShown() then this:Hide() end
-
-    -- fade in the night
-    if this:GetAlpha() < 1 then
-      this:SetAlpha(this:GetAlpha() + .02)
-      return
-    end
 
     if ( this.tick or 1) > GetTime() then return else this.tick = GetTime() + math.random() - .6 end
 
@@ -202,6 +197,11 @@ do -- window
 
     if not this.running then return end
 
+    if not GetAutoLootDefault() then
+      SetAutoLootDefault(1)
+      restore = 1
+    end
+
     -- disable fireworks while running
     fireworks:Hide()
 
@@ -254,6 +254,11 @@ do -- loot handler
     end
 
     if slots[1] and slots[1][2] and slots[1][2] > 2 then fireworks:Show() end
+
+    if restore == 1 then
+      SetAutoLootDefault(nil)
+      restore = 0
+    end
   end
 
   local lootscan = CreateFrame("Frame")
