@@ -126,7 +126,7 @@ do -- window
     local match, allcount = nil, 0
     self.bag, self.slot = nil, nil
 
-    for bag = -1, 12 do
+    for bag = 0, 12 do
       for slot = 1, GetContainerNumSlots(bag) do
         local itemlink = GetContainerItemLink(bag, slot)
         local _, count = GetContainerItemInfo(bag, slot)
