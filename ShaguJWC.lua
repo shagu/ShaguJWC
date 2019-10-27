@@ -13,7 +13,6 @@ end
 
 -- global function to use inside button macro
 ShaguJWC_Random = function()
-  window:ScanItem()
   window.running = GetTime()
 end
 
@@ -127,7 +126,7 @@ do -- window
     local match, allcount = nil, 0
     self.bag, self.slot = nil, nil
 
-    for bag = 0, 12 do
+    for bag = -1, 12 do
       for slot = 1, GetContainerNumSlots(bag) do
         local itemlink = GetContainerItemLink(bag, slot)
         local _, count = GetContainerItemInfo(bag, slot)
@@ -160,8 +159,6 @@ do -- window
       this.border:SetVertexColor(GetItemQualityColor(rarity))
       ClearCursor()
     end
-
-    self:ScanItem()
   end
 
   window.bg = window:CreateTexture(nil, "BACKGROUND")
@@ -224,6 +221,12 @@ do -- window
 
   -- animation
   window:SetScript("OnUpdate", function()
+    -- limmit updates to once per .1 seconds
+    if ( this.tick or 1) > GetTime() then return else this.tick = GetTime() + .1 end
+
+    -- update current item slots
+    this:ScanItem()
+
     if not this.running then return end
 
     if not GetAutoLootDefault() then
@@ -234,14 +237,10 @@ do -- window
     -- disable fireworks while running
     fireworks:Hide()
 
-    -- limmit updates to once per .1 seconds
-    if ( this.tick or 1) > GetTime() then return else this.tick = GetTime() + .1 end
-
     -- detect aborted/failed casts and reset all
     if this.running + .3 < GetTime() and not UnitCastingInfo("player") then
       for i=1,3 do this.slots[i].border:SetVertexColor(1,1,1) end
       this.running, this.bag, this.slot = nil, nil, nil
-      this:ScanItem()
       return
     end
 
