@@ -13,6 +13,7 @@ end
 
 -- global function to use inside button macro
 ShaguJWC_Random = function()
+  window:ScanItem()
   window.running = GetTime()
 end
 
@@ -122,6 +123,47 @@ do -- window
   window:SetScript("OnMouseUp", function() this:StopMovingOrSizing() end)
   window:Hide()
 
+  window.ScanItem = function(self)
+    local match, allcount = nil, 0
+    self.bag, self.slot = nil, nil
+
+    for bag = 0, 12 do
+      for slot = 1, GetContainerNumSlots(bag) do
+        local itemlink = GetContainerItemLink(bag, slot)
+        local _, count = GetContainerItemInfo(bag, slot)
+
+        if count and itemlink and itemlink == self.drag.itemlink then
+          allcount = allcount + count
+          if count >= 5 and not match then
+            self.bag, self.slot = bag, slot
+            match = true
+          end
+        end
+      end
+    end
+
+    if match then
+      self.button:SetAttribute("macrotext1", string.format("/cast Prospecting\n/use %d %d\n/run ShaguJWC_Random()", self.bag, self.slot))
+    else
+      self.button:SetAttribute("macrotext1", "/run ShaguJWC_Random()")
+    end
+
+    self.drag.count:SetText(allcount)
+  end
+
+  window.DropItem = function(self)
+    local cursor, id, itemlink = GetCursorInfo()
+    if cursor == "item" then
+      local name, _, rarity, _, _, _, _, _, _, texture = GetItemInfo(itemlink)
+      this.itemlink = itemlink
+      this.icon:SetTexture(texture)
+      this.border:SetVertexColor(GetItemQualityColor(rarity))
+      ClearCursor()
+    end
+
+    self:ScanItem()
+  end
+
   window.bg = window:CreateTexture(nil, "BACKGROUND")
   window.bg:SetTexture(0,0,0,.4)
   window.bg:SetAllPoints()
@@ -146,24 +188,13 @@ do -- window
   window.button:RegisterForClicks("AnyUp")
 
   -- item
-  local function DropItem()
-    local cursor, id, itemlink = GetCursorInfo()
-    if cursor == "item" then
-      local name, link, rarity, level, min, itype, isubtype, istackcount, itemEquipLoc, texture = GetItemInfo(itemlink)
-      window.button:SetAttribute("macrotext1", string.format("/cast Prospecting\n/use %s\n/run ShaguJWC_Random()", name))
-      this.icon:SetTexture(texture)
-      this.border:SetVertexColor(GetItemQualityColor(rarity))
-      this.item = name
-      ClearCursor()
-    end
-  end
   window.drag = CreateSlot()
   window.drag:SetPoint("TOP", 0, -16)
   window.drag:SetWidth(32)
   window.drag:SetHeight(32)
   window.drag:RegisterForDrag("LeftButton")
-  window.drag:SetScript("OnClick", DropItem)
-  window.drag:SetScript("OnReceiveDrag", DropItem)
+  window.drag:SetScript("OnClick", function() window:DropItem() end)
+  window.drag:SetScript("OnReceiveDrag", function() window:DropItem() end)
 
   -- slots
   window.slots = { }
@@ -193,8 +224,6 @@ do -- window
 
   -- animation
   window:SetScript("OnUpdate", function()
-    this.drag.count:SetText(GetItemCount(this.drag.item))
-
     if not this.running then return end
 
     if not GetAutoLootDefault() then
@@ -211,7 +240,8 @@ do -- window
     -- detect aborted/failed casts and reset all
     if this.running + .3 < GetTime() and not UnitCastingInfo("player") then
       for i=1,3 do this.slots[i].border:SetVertexColor(1,1,1) end
-      this.running = nil
+      this.running, this.bag, this.slot = nil, nil, nil
+      this:ScanItem()
       return
     end
 
@@ -272,7 +302,6 @@ do -- loot handler
     count = count or 0
 
     if item then
-
       -- detect and initiate new loot events
       if (this.lasttime or 0) + .2 < GetTime() then
         slots = {}
